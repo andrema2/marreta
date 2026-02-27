@@ -58,15 +58,22 @@ return [
         'scriptTagRemove' => ['.js'],
     ],
     'globo.com' => [
-        'idElementRemove' => ['cookie-banner-lgpd', 'paywall-cpt', 'mc-read-more-wrapper', 'paywall-cookie-content', 'paywall-cpt'],
-        'classElementRemove' => ['banner-lgpd', 'article-related-link__title', 'article-related-link__picture', 'paywall-denied', 'banner-subscription'],
-        'scriptTagRemove' => ['tiny.js', 'signup.js', 'paywall.js'],
+        'idElementRemove' => ['cookie-banner-lgpd', 'paywall-cpt', 'mc-read-more-wrapper', 'paywall-cookie-content', 'paywall-cpt', 'piano-offer', 'piano-inline', 'piano-modal', 'paywall-container', 'paywall-overlay', 'paywall-wrapper', 'paywall-notification', 'piano-container'],
+        'classElementRemove' => ['banner-lgpd', 'article-related-link__title', 'article-related-link__picture', 'paywall-denied', 'banner-subscription', 'piano-offer', 'piano-inline', 'piano-modal', 'paywall-container', 'paywall-overlay', 'paywall-wrapper', 'paywall-notification', 'piano-content', 'piano-iframe', 'piano-adblock', 'piano-blocked', 'piano-subscription', 'piano-premium', 'piano-paywall'],
+        'scriptTagRemove' => ['tiny.js', 'signup.js', 'paywall.js', 'piano.js', 'tinypass.js', 'tp.min.js', 'piano-'],
         'cookies' => [
             'piano_d' => null,
             'piano_if' => null,
-            'piano_user_id' => null
+            'piano_user_id' => null,
+            'piano_id' => null,
+            'piano_privacy' => null,
+            'piano_consent' => null
         ],
-        'classAttrRemove' => ['wall', 'protected-content', 'cropped-block']
+        'classAttrRemove' => ['wall', 'protected-content', 'cropped-block', 'piano-', 'paywall-'],
+        'customCode' => [
+            '<style>.piano-container, .piano-offer, .piano-modal, .piano-inline, .paywall-container, .paywall-overlay, .paywall-wrapper { display: none !important; }</style>',
+            '<script>setTimeout(() => { document.querySelectorAll("[class*=\"piano\"], [class*=\"paywall\"], [id*=\"piano\"], [id*=\"paywall\"]").forEach(el => el.remove()); }, 1000);</script>'
+        ]
     ],
     'gauchazh.clicrbs.com.br' => [
         'idElementRemove' => ['paywallTemplate'],
