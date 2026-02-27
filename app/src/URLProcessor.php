@@ -85,7 +85,7 @@ class URLProcessor
 
             if ($this->isApi) {
                 $this->sendApiResponse([
-                    'url' => SITE_URL . '/p/' . $this->url
+                    'url' => SITE_URL . '/p/' . urlencode($this->url)
                 ]);
             } else {
                 echo $content;

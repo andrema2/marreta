@@ -47,7 +47,7 @@ class Router
                 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['url'])) {
                     $url = $this->sanitizeUrl($_POST['url']);
                     if (filter_var($url, FILTER_VALIDATE_URL)) {
-                        header('Location: ' . SITE_URL . '/p/' . $url);
+                        header('Location: ' . SITE_URL . '/p/' . urlencode($url));
                         exit;
                     } else {
                         $messageData = \Inc\Language::getMessage('INVALID_URL');
@@ -88,10 +88,10 @@ class Router
                     $text = isset($_GET['text']) ? $this->sanitizeUrl($_GET['text']) : '';
                     
                     if (filter_var($url, FILTER_VALIDATE_URL)) {
-                        header('Location: /p/' . $url);
+                        header('Location: /p/' . urlencode($url));
                         exit;
                     } elseif (filter_var($text, FILTER_VALIDATE_URL)) {
-                        header('Location: /p/' . $text);
+                        header('Location: /p/' . urlencode($text));
                         exit;
                     } else {
                         header('Location: /?message=INVALID_URL');
@@ -118,14 +118,14 @@ class Router
     {
         $url = trim($url);
 
+        // Handle AMP URLs first
+        if (preg_match('#https://([^.]+)\.cdn\.ampproject\.org/v/s/([^/]+)(.*)#', $url, $matches)) {
+            $url = 'https://' . $matches[2] . $matches[3];
+        }
+
         // Basic URL validation
         if (!filter_var($url, FILTER_VALIDATE_URL)) {
             return '';
-        }
-
-        // Handle AMP URLs
-        if (preg_match('#https://([^.]+)\.cdn\.ampproject\.org/v/s/([^/]+)(.*)#', $url, $matches)) {
-            $url = 'https://' . $matches[2] . $matches[3];
         }
 
         // Parse and reconstruct URL to ensure proper structure
@@ -140,12 +140,19 @@ class Router
             $cleanedUrl .= $parts['path'];
         }
         
+        if (isset($parts['query'])) {
+            $cleanedUrl .= '?' . $parts['query'];
+        }
+        
+        if (isset($parts['fragment'])) {
+            $cleanedUrl .= '#' . $parts['fragment'];
+        }
+        
         // Remove control characters and sanitize
         $cleanedUrl = preg_replace('/[\x00-\x1F\x7F]/', '', $cleanedUrl);
         $cleanedUrl = filter_var($cleanedUrl, FILTER_SANITIZE_URL);
         
-        // Convert special characters to HTML entities
-        return htmlspecialchars($cleanedUrl, ENT_QUOTES | ENT_HTML5, 'UTF-8');
+        return $cleanedUrl;
     }
 
     /**

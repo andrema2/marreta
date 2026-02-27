@@ -1,25 +1,32 @@
 services:
-  # Marreta
   marreta:
     container_name: marreta
-    image: ghcr.io/manualdousuario/marreta:latest
-    ports:
-      - "80:80"
+    image: marreta:local
     volumes:
-      - ./app/cache:/app/cache
-      - ./app/logs:/app/logs
+      - /dockers/marreta/cache:/app/cache
+      - /dockers/marreta/logs:/app/logs
     environment:
-      - SITE_NAME=${SITE_NAME:-}
-      - SITE_DESCRIPTION=${SITE_DESCRIPTION:-}
-      - SITE_URL=${SITE_URL:-https://marreta.localhost}
-      - DNS_SERVERS=${DNS_SERVER:-1.1.1.1,8.8.8.8}
+      - SITE_NAME=${SITE_NAME:-Marreta}
+      - SITE_DESCRIPTION=${SITE_DESCRIPTION:-Leitor sem barreiras}
+      - SITE_URL=${SITE_URL:-https://marreta.andremartins.org}
+      - DNS_SERVERS=${DNS_SERVERS:-1.1.1.1,8.8.8.8}
       - LANGUAGE=${LANGUAGE:-pt-br}
       - LOG_LEVEL=${LOG_LEVEL:-WARNING}
       - SELENIUM_HOST=${SELENIUM_HOST:-selenium-hub:4444}
-      - CLEANUP_DAYS=7 # Optional
-      - PROXY_LIST=url # Optional
+      - CLEANUP_DAYS=${CLEANUP_DAYS:-7}
+      - PROXY_LIST=${PROXY_LIST:-}
+    networks:
+      - proxy
+      - default
+    labels:
+      - traefik.enable=true
+      - traefik.http.routers.marreta.rule=Host(`marreta.andremartins.org`)
+      - traefik.http.routers.marreta.entrypoints=websecure
+      - traefik.http.routers.marreta.tls=true
+      - traefik.http.services.marreta.loadbalancer.server.port=80
+      - traefik.docker.network=proxy
     restart: unless-stopped
-  # Selenium
+
   selenium-hub:
     image: selenium/hub:4.27.0-20241204
     container_name: selenium-hub
@@ -30,10 +37,8 @@ services:
       - GRID_TIMEOUT=10
     depends_on:
       - marreta
-    ports:
-      - 4442:4442
-      - 4443:4443
-      - 4444:4444
+    restart: unless-stopped
+
   selenium-chromium:
     container_name: selenium-chromium
     image: selenium/node-chromium:4.27.0-20241204
@@ -48,6 +53,8 @@ services:
     entrypoint: bash -c 'SE_OPTS="--host $$HOSTNAME" /opt/bin/entry_point.sh'
     depends_on:
       - selenium-hub
+    restart: unless-stopped
+
   selenium-firefox:
     container_name: selenium-firefox
     image: selenium/node-firefox:4.27.0-20241204
@@ -62,3 +69,8 @@ services:
     entrypoint: bash -c 'SE_OPTS="--host $$HOSTNAME" /opt/bin/entry_point.sh'
     depends_on:
       - selenium-hub
+    restart: unless-stopped
+
+networks:
+  proxy:
+    external: true
