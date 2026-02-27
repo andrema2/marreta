@@ -70,10 +70,8 @@ return [
             'piano_consent' => null
         ],
         'classAttrRemove' => ['wall', 'protected-content', 'cropped-block', 'piano-', 'paywall-'],
-        'customCode' => [
-            '<style>.piano-container, .piano-offer, .piano-modal, .piano-inline, .paywall-container, .paywall-overlay, .paywall-wrapper { display: none !important; }</style>',
-            '<script>setTimeout(() => { document.querySelectorAll("[class*=\"piano\"], [class*=\"paywall\"], [id*=\"piano\"], [id*=\"paywall\"]").forEach(el => el.remove()); }, 1000);</script>'
-        ]
+        'customStyle' => '.piano-container, .piano-offer, .piano-modal, .piano-inline, .paywall-container, .paywall-overlay, .paywall-wrapper { display: none !important; }',
+        'customCode' => 'setTimeout(() => { document.querySelectorAll("[class*=\\"piano\\"], [class*=\\"paywall\\"], [id*=\\"piano\\"], [id*=\\"paywall\\"]").forEach(el => el.remove()); }, 1000);'
     ],
     'gauchazh.clicrbs.com.br' => [
         'idElementRemove' => ['paywallTemplate'],
