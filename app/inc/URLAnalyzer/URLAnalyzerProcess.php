@@ -132,6 +132,36 @@ class URLAnalyzerProcess extends URLAnalyzerBase
             }
         }
 
+        if (isset($domainRules['containsElementRemove'])) {
+            foreach ($domainRules['containsElementRemove'] as $keyword) {
+                $keyword = strtolower(trim((string)$keyword));
+                if ($keyword === '') {
+                    continue;
+                }
+
+                $found = false;
+                $xpath = new XPath($dom);
+                $safeKeyword = str_replace("'", "\\'", $keyword);
+                $elements = $xpath->query(
+                    "//*[contains(translate(@class, 'ABCDEFGHIJKLMNOPQRSTUVWXYZ', 'abcdefghijklmnopqrstuvwxyz'), '$safeKeyword')"
+                    . " or contains(translate(@id, 'ABCDEFGHIJKLMNOPQRSTUVWXYZ', 'abcdefghijklmnopqrstuvwxyz'), '$safeKeyword')]"
+                );
+
+                if ($elements->length > 0) {
+                    $found = true;
+                    foreach ($elements as $element) {
+                        if ($element->parentNode) {
+                            $element->parentNode->removeChild($element);
+                        }
+                    }
+                }
+
+                if ($found) {
+                    $this->activatedRules[] = "containsElementRemove: $keyword";
+                }
+            }
+        }
+
         if (isset($domainRules['scriptTagRemove'])) {
             foreach ($domainRules['scriptTagRemove'] as $script) {
                 $found = false;

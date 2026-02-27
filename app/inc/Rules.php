@@ -21,6 +21,7 @@ class Rules
         'headers',
         'idElementRemove',
         'classElementRemove',
+        'containsElementRemove',
         'scriptTagRemove',
         'cookies',
         'classAttrRemove',

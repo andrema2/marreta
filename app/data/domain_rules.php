@@ -60,6 +60,7 @@ return [
     'globo.com' => [
         'idElementRemove' => ['cookie-banner-lgpd', 'paywall-cpt', 'mc-read-more-wrapper', 'paywall-cookie-content', 'paywall-cpt', 'piano-offer', 'piano-inline', 'piano-modal', 'paywall-container', 'paywall-overlay', 'paywall-wrapper', 'paywall-notification', 'piano-container'],
         'classElementRemove' => ['banner-lgpd', 'article-related-link__title', 'article-related-link__picture', 'paywall-denied', 'banner-subscription', 'piano-offer', 'piano-inline', 'piano-modal', 'paywall-container', 'paywall-overlay', 'paywall-wrapper', 'paywall-notification', 'piano-content', 'piano-iframe', 'piano-adblock', 'piano-blocked', 'piano-subscription', 'piano-premium', 'piano-paywall'],
+        'containsElementRemove' => ['paywall', 'piano', 'tinypass', 'subscription', 'metered', 'premium'],
         'scriptTagRemove' => ['tiny.js', 'signup.js', 'paywall.js', 'piano.js', 'tinypass.js', 'tp.min.js', 'piano-'],
         'cookies' => [
             'piano_d' => null,
