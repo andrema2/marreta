@@ -1,7 +1,7 @@
 services:
   marreta:
     container_name: marreta
-    image: marreta:local
+    build: https://github.com/andrema2/marreta.git#main
     volumes:
       - /dockers/marreta/cache:/app/cache
       - /dockers/marreta/logs:/app/logs
