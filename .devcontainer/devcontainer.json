@@ -1,6 +1,7 @@
 {
   "name": "PHP Dev",
   "image": "php:8.3-cli",
+  "onCreateCommand": "apt-get update && apt-get install -y git",
   "customizations": {
     "vscode": {
       "extensions": [
