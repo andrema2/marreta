@@ -16,6 +16,10 @@ if (!defined('DISABLE_CACHE')) {
     define('DISABLE_CACHE', true);
 }
 
+if (!defined('VERIFY_SSL')) {
+    define('VERIFY_SSL', true);
+}
+
 if (!defined('S3_CACHE_ENABLED')) {
     define('S3_CACHE_ENABLED', false);
 }

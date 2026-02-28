@@ -38,7 +38,7 @@ return [
             'type' => 'warning'
         ],
         'CONTENT_ERROR' => [
-            'message' => 'Could not get content. Try using archive services.',
+            'message' => 'Could not fetch the content. In some cases, this article may be subscriber-only.',
             'type' => 'warning'
         ],
         'INVALID_URL' => [

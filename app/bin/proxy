@@ -134,8 +134,9 @@ function downloadProxyList($url, $climate = null) {
     $curl->setHeader('Accept-Encoding', 'gzip, deflate');
     $curl->setOpt(CURLOPT_FOLLOWLOCATION, true);
     $curl->setOpt(CURLOPT_MAXREDIRS, 3);
-    $curl->setOpt(CURLOPT_SSL_VERIFYPEER, false);
-    $curl->setOpt(CURLOPT_SSL_VERIFYHOST, false);
+    $verifySsl = !isset($_ENV['VERIFY_SSL']) || filter_var($_ENV['VERIFY_SSL'], FILTER_VALIDATE_BOOLEAN);
+    $curl->setOpt(CURLOPT_SSL_VERIFYPEER, $verifySsl);
+    $curl->setOpt(CURLOPT_SSL_VERIFYHOST, $verifySsl ? 2 : 0);
     
     try {
         if ($climate) {

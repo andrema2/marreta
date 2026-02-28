@@ -29,6 +29,7 @@ try {
     
     // Optional settings with defaults
     define('DNS_SERVERS', $_ENV['DNS_SERVERS'] ?? '1.1.1.1, 8.8.8.8');
+    define('VERIFY_SSL', isset($_ENV['VERIFY_SSL']) ? filter_var($_ENV['VERIFY_SSL'], FILTER_VALIDATE_BOOLEAN) : true);
     define('DISABLE_CACHE', isset($_ENV['DISABLE_CACHE']) ? filter_var($_ENV['DISABLE_CACHE'], FILTER_VALIDATE_BOOLEAN) : false);
     define('SELENIUM_HOST', $_ENV['SELENIUM_HOST'] ?? 'localhost:4444');
     define('CACHE_DIR', __DIR__ . '/cache');

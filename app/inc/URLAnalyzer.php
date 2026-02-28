@@ -16,6 +16,9 @@ use Inc\URLAnalyzer\URLAnalyzerUtils;
 
 class URLAnalyzer extends URLAnalyzerBase
 {
+    private const VALOR_DOMAIN = 'valor.globo.com';
+    private const VALOR_HARD_PAYWALL_MIN_CHARS = 200;
+
     /** @var URLAnalyzerFetch Content fetcher */
     private $fetch;
     
@@ -65,8 +68,8 @@ class URLAnalyzer extends URLAnalyzerBase
         // Check if domain is in DMCA list FIRST (before any HTTP requests)
         foreach (DMCA_DOMAINS as $dmcaEntry) {
             if (is_array($dmcaEntry) && isset($dmcaEntry['host'])) {
-                $dmcaHost = $dmcaEntry['host'];
-                if (strpos($url, $dmcaHost) !== false) {
+                $dmcaHost = $this->normalizeDomain((string)$dmcaEntry['host']);
+                if ($dmcaHost !== '' && $this->isDomainMatch($host, $dmcaHost)) {
                     Logger::getInstance()->logUrl($url, 'DMCA_DOMAIN');
                     $customMessage = isset($dmcaEntry['message']) ? $dmcaEntry['message'] : '';
                     $this->error->throwError(self::ERROR_DMCA_DOMAIN, $customMessage);
@@ -81,7 +84,10 @@ class URLAnalyzer extends URLAnalyzerBase
         if ($this->cache->exists($url)) {
             $rawContent = $this->cache->get($url);
             // Process the raw content in real-time
-            return $this->process->processContent($rawContent, parse_url($url, PHP_URL_HOST), $url);
+            $cachedHost = (string)parse_url($url, PHP_URL_HOST);
+            $processedContent = $this->process->processContent($rawContent, $cachedHost, $url);
+            $this->validateHardPaywallForValor($cachedHost, $processedContent);
+            return $processedContent;
         }
 
         // Check if domain is in blocked list
@@ -132,7 +138,9 @@ class URLAnalyzer extends URLAnalyzerBase
                         // Cache the raw HTML content
                         $this->cache->set($url, $content);
                         // Process content in real-time
-                        return $this->process->processContent($content, $host, $url);
+                        $processedContent = $this->process->processContent($content, $host, $url);
+                        $this->validateHardPaywallForValor($host, $processedContent);
+                        return $processedContent;
                     }
                 } catch (\Exception $e) {
                     Logger::getInstance()->logUrl($url, strtoupper($fetchStrategy) . '_ERROR', $e->getMessage());
@@ -157,7 +165,9 @@ class URLAnalyzer extends URLAnalyzerBase
                         // Cache the raw HTML content
                         $this->cache->set($url, $content);
                         // Process content in real-time
-                        return $this->process->processContent($content, $host, $url);
+                        $processedContent = $this->process->processContent($content, $host, $url);
+                        $this->validateHardPaywallForValor($host, $processedContent);
+                        return $processedContent;
                     }
                 } catch (\Exception $e) {
                     $lastError = $e;
@@ -196,5 +206,43 @@ class URLAnalyzer extends URLAnalyzerBase
                 $this->error->throwError(self::ERROR_GENERIC_ERROR, (string)$message);
             }
         }
+    }
+
+    /**
+     * Validates hard paywall scenario for valor.globo.com based on visible text length.
+     */
+    protected function validateHardPaywallForValor(string $host, string $processedContent): void
+    {
+        if ($this->normalizeDomain($host) !== self::VALOR_DOMAIN) {
+            return;
+        }
+
+        $plainText = trim(preg_replace('/\s+/u', ' ', html_entity_decode(strip_tags($processedContent), ENT_QUOTES | ENT_HTML5, 'UTF-8')));
+        if (mb_strlen($plainText) < self::VALOR_HARD_PAYWALL_MIN_CHARS) {
+            $this->error->throwError(
+                self::ERROR_CONTENT_ERROR,
+                'Este artigo do Valor Economico e exclusivo para assinantes (hard paywall).'
+            );
+        }
+    }
+
+    /**
+     * Normalizes hostnames for reliable domain comparison.
+     */
+    private function normalizeDomain(string $domain): string
+    {
+        return strtolower((string)preg_replace('/^www\./i', '', trim($domain)));
+    }
+
+    /**
+     * Matches exact domain or subdomain against a target host.
+     */
+    private function isDomainMatch(string $inputHost, string $targetHost): bool
+    {
+        $normalizedInput = $this->normalizeDomain($inputHost);
+        $normalizedTarget = $this->normalizeDomain($targetHost);
+
+        return $normalizedInput === $normalizedTarget
+            || str_ends_with($normalizedInput, '.' . $normalizedTarget);
     }
 }

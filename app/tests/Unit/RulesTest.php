@@ -26,4 +26,27 @@ final class RulesTest extends TestCase
 
         $this->assertTrue($rules->hasDomainRules('valor.globo.com'));
     }
+
+    public function test_valor_globo_has_expected_piano_rules(): void
+    {
+        $rules = new Rules();
+        $domainRules = $rules->getDomainRules('valor.globo.com');
+
+        $this->assertArrayHasKey('idElementRemove', $domainRules);
+        $this->assertContains('paywall-desktop', $domainRules['idElementRemove']);
+
+        $this->assertArrayHasKey('classElementRemove', $domainRules);
+        $this->assertContains('wall', $domainRules['classElementRemove']);
+        $this->assertContains('protected-content', $domainRules['classElementRemove']);
+        $this->assertContains('hide-all-content', $domainRules['classElementRemove']);
+        $this->assertContains('fade-top', $domainRules['classElementRemove']);
+
+        $this->assertArrayHasKey('scriptTagRemove', $domainRules);
+        $this->assertContains('static.infoglobo.com.br/paywall/js/tiny.js', $domainRules['scriptTagRemove']);
+        $this->assertContains('experience.tinypass.com/xbuilder/experience/load?aid=VnaP3rYVKc', $domainRules['scriptTagRemove']);
+
+        $this->assertArrayHasKey('cookiePrefixRemove', $domainRules);
+        $this->assertContains('__utp', $domainRules['cookiePrefixRemove']);
+        $this->assertContains('_pc_', $domainRules['cookiePrefixRemove']);
+    }
 }

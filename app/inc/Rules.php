@@ -24,6 +24,7 @@ class Rules
         'containsElementRemove',
         'scriptTagRemove',
         'cookies',
+        'cookiePrefixRemove',
         'classAttrRemove',
         'customCode',
         'excludeGlobalRules',

@@ -164,9 +164,10 @@ class SQLiteStorage implements CacheStorageInterface
      */
     public function set(string $id, string $content): bool
     {
+        $alreadyExists = $this->diskStorage->exists($id);
         $result = $this->diskStorage->set($id, $content);
         
-        if ($result) {
+        if ($result && !$alreadyExists) {
             // Increment cache file count
             $currentCount = $this->countCacheFiles();
             $this->updateCacheFileCount($currentCount + 1);

@@ -109,7 +109,8 @@ class S3Storage implements CacheStorageInterface
                 return null;
             }
             
-            return $compressedContent;
+            $decodedContent = gzdecode($compressedContent);
+            return $decodedContent === false ? null : $decodedContent;
         } catch (AwsException $e) {
             return null;
         }

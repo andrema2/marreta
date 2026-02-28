@@ -1,0 +1,12 @@
+{
+  "name": "PHP Dev",
+  "image": "php:8.3-cli",
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "xdebug.php-debug",
+        "bmewburn.vscode-intelephense-client"
+      ]
+    }
+  }
+}

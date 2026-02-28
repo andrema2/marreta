@@ -28,6 +28,7 @@
  * - fromGoogleBot: Adds simulation of request coming from Google Bot
  * - removeElementsByTag: Remove specific elements via DOM
  * - removeCustomAttr: Remove custom attributes from elements
+ * - cookiePrefixRemove: Remove cookies by name prefix before fetch (e.g. "__utp", "_pc_")
  * - urlMods: Modify the URL before fetching content.
  *     Example:
  *     'urlMods' => [
@@ -73,6 +74,18 @@ return [
         'classAttrRemove' => ['wall', 'protected-content', 'cropped-block', 'piano-', 'paywall-'],
         'customStyle' => '.piano-container, .piano-offer, .piano-modal, .piano-inline, .paywall-container, .paywall-overlay, .paywall-wrapper { display: none !important; }',
         'customCode' => 'setTimeout(() => { document.querySelectorAll("[class*=\\"piano\\"], [class*=\\"paywall\\"], [id*=\\"piano\\"], [id*=\\"paywall\\"]").forEach(el => el.remove()); }, 1000);'
+    ],
+    'valor.globo.com' => [
+        'idElementRemove' => ['paywall-desktop'],
+        'classElementRemove' => ['wall', 'protected-content', 'paywall', 'hide-all-content', 'mc-column', 'fade-top'],
+        'containsElementRemove' => ['paywall', 'piano', 'tinypass'],
+        'scriptTagRemove' => [
+            'static.infoglobo.com.br/paywall/js/tiny.js',
+            'static.infoglobo.com.br/paywall/js/1.tiny.js',
+            'static.infoglobo.com.br/paywall/js/21.tiny.js',
+            'experience.tinypass.com/xbuilder/experience/load?aid=VnaP3rYVKc'
+        ],
+        'cookiePrefixRemove' => ['__utp', '_pc_']
     ],
     'gauchazh.clicrbs.com.br' => [
         'idElementRemove' => ['paywallTemplate'],

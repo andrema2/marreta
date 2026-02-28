@@ -38,7 +38,7 @@ return [
             'type' => 'warning'
         ],
         'CONTENT_ERROR' => [
-            'message' => 'Der Inhalt konnte nicht abgerufen werden. Versuchen Sie, Archivdienste zu verwenden.',
+            'message' => 'Der Inhalt konnte nicht abgerufen werden. In einigen Fallen kann der Artikel nur fur Abonnenten verfugbar sein.',
             'type' => 'warning'
         ],
         'INVALID_URL' => [

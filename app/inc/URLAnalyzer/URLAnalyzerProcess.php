@@ -299,15 +299,19 @@ class URLAnalyzerProcess extends URLAnalyzerBase
     private function fixRelativeUrls($dom, $baseUrl)
     {
         $parsedBase = parse_url($baseUrl);
-        $baseHost = ($parsedBase['scheme'] ?? 'http') . '://' . $parsedBase['host'];
+        if (!isset($parsedBase['host'])) {
+            return;
+        }
 
         foreach ($dom->querySelectorAll('[src]') as $element) {
             $src = $element->getAttribute('src');
             if (str_starts_with($src, 'data:')) {
                 continue;
             }
-            if (!str_starts_with($src, 'http') && !str_starts_with($src, '//')) {
-                $element->setAttribute('src', $baseHost . '/' . ltrim($src, '/'));
+
+            $resolvedSrc = $this->resolveRelativeUrl($baseUrl, $src);
+            if ($resolvedSrc !== null) {
+                $element->setAttribute('src', $resolvedSrc);
             }
         }
 
@@ -321,10 +325,98 @@ class URLAnalyzerProcess extends URLAnalyzerBase
             ) {
                 continue;
             }
-            if (!str_starts_with($href, 'http') && !str_starts_with($href, '//')) {
-                $element->setAttribute('href', $baseHost . '/' . ltrim($href, '/'));
+
+            $resolvedHref = $this->resolveRelativeUrl($baseUrl, $href);
+            if ($resolvedHref !== null) {
+                $element->setAttribute('href', $resolvedHref);
             }
         }
+    }
+
+    /**
+     * Resolves relative URLs against the current page URL.
+     */
+    private function resolveRelativeUrl(string $baseUrl, string $relativeUrl): ?string
+    {
+        $relativeUrl = trim($relativeUrl);
+        if ($relativeUrl === '' || str_starts_with($relativeUrl, 'data:')) {
+            return null;
+        }
+
+        if (preg_match('#^[a-z][a-z0-9+.-]*://#i', $relativeUrl)) {
+            return $relativeUrl;
+        }
+
+        $base = parse_url($baseUrl);
+        if (!isset($base['host'])) {
+            return null;
+        }
+
+        $scheme = $base['scheme'] ?? 'https';
+        $origin = $scheme . '://' . $base['host'];
+        if (isset($base['port'])) {
+            $origin .= ':' . $base['port'];
+        }
+
+        if (str_starts_with($relativeUrl, '//')) {
+            return $scheme . ':' . $relativeUrl;
+        }
+
+        if (str_starts_with($relativeUrl, '/')) {
+            return $origin . $relativeUrl;
+        }
+
+        if (str_starts_with($relativeUrl, '?')) {
+            $basePath = $base['path'] ?? '/';
+            return $origin . $basePath . $relativeUrl;
+        }
+
+        $relativeParts = parse_url($relativeUrl);
+        if ($relativeParts === false) {
+            return null;
+        }
+
+        $basePath = $base['path'] ?? '/';
+        $baseDir = preg_replace('#/[^/]*$#', '/', $basePath);
+        $relativePath = $relativeParts['path'] ?? '';
+        $resolvedPath = $this->normalizePath($baseDir . $relativePath);
+        if ($resolvedPath === '') {
+            $resolvedPath = '/';
+        }
+
+        $resolvedUrl = $origin . $resolvedPath;
+        if (isset($relativeParts['query'])) {
+            $resolvedUrl .= '?' . $relativeParts['query'];
+        }
+        if (isset($relativeParts['fragment'])) {
+            $resolvedUrl .= '#' . $relativeParts['fragment'];
+        }
+
+        return $resolvedUrl;
+    }
+
+    /**
+     * Normalizes URL paths by resolving "." and ".." segments.
+     */
+    private function normalizePath(string $path): string
+    {
+        $segments = explode('/', $path);
+        $stack = [];
+
+        foreach ($segments as $segment) {
+            if ($segment === '' || $segment === '.') {
+                continue;
+            }
+
+            if ($segment === '..') {
+                array_pop($stack);
+                continue;
+            }
+
+            $stack[] = $segment;
+        }
+
+        return '/' . implode('/', $stack);
     }
 }
 

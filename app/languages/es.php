@@ -38,7 +38,7 @@ return [
             'type' => 'warning'
         ],
         'CONTENT_ERROR' => [
-            'message' => 'No se pudo obtener el contenido. Intente usar los servicios de archivo.',
+            'message' => 'No se pudo obtener el contenido. En algunos casos, este articulo puede ser exclusivo para suscriptores.',
             'type' => 'warning'
         ],
         'INVALID_URL' => [

@@ -132,6 +132,83 @@ class URLAnalyzerFetch extends URLAnalyzerBase
         return $modifiedUrl;
     }
 
+    /**
+     * Parses a Cookie header string into a name => value map.
+     */
+    private function parseCookieHeader(string $cookieHeader): array
+    {
+        $cookies = [];
+        $pairs = explode(';', $cookieHeader);
+
+        foreach ($pairs as $pair) {
+            $pair = trim($pair);
+            if ($pair === '' || strpos($pair, '=') === false) {
+                continue;
+            }
+
+            [$name, $value] = explode('=', $pair, 2);
+            $name = trim($name);
+            $value = trim($value);
+
+            if ($name !== '') {
+                $cookies[$name] = $value;
+            }
+        }
+
+        return $cookies;
+    }
+
+    /**
+     * Builds and sanitizes the outgoing Cookie header based on domain rules.
+     * Supports exact cookie overrides/removals and prefix-based removals.
+     */
+    private function buildCookieHeaderFromRules(array $domainRules): ?string
+    {
+        $cookies = [];
+
+        if (
+            isset($domainRules['headers']) &&
+            is_array($domainRules['headers']) &&
+            isset($domainRules['headers']['Cookie']) &&
+            is_string($domainRules['headers']['Cookie'])
+        ) {
+            $cookies = $this->parseCookieHeader($domainRules['headers']['Cookie']);
+        }
+
+        if (isset($domainRules['cookies']) && is_array($domainRules['cookies'])) {
+            foreach ($domainRules['cookies'] as $name => $value) {
+                if ($value === null) {
+                    unset($cookies[$name]);
+                    continue;
+                }
+
+                $cookies[$name] = (string)$value;
+            }
+        }
+
+        if (isset($domainRules['cookiePrefixRemove']) && is_array($domainRules['cookiePrefixRemove'])) {
+            foreach (array_keys($cookies) as $cookieName) {
+                foreach ($domainRules['cookiePrefixRemove'] as $prefix) {
+                    if ($prefix !== '' && str_starts_with($cookieName, (string)$prefix)) {
+                        unset($cookies[$cookieName]);
+                        break;
+                    }
+                }
+            }
+        }
+
+        if (empty($cookies)) {
+            return null;
+        }
+
+        $cookiePairs = [];
+        foreach ($cookies as $name => $value) {
+            $cookiePairs[] = $name . '=' . $value;
+        }
+
+        return implode('; ', $cookiePairs);
+    }
+
     public function fetchContent($url)
     {
         $curl = new Curl();
@@ -148,7 +225,8 @@ class URLAnalyzerFetch extends URLAnalyzerBase
         $curl->setOpt(CURLOPT_FOLLOWLOCATION, true);
         $curl->setOpt(CURLOPT_MAXREDIRS, 2);
         $curl->setOpt(CURLOPT_TIMEOUT, 10);
-        $curl->setOpt(CURLOPT_SSL_VERIFYPEER, false);
+        $curl->setOpt(CURLOPT_SSL_VERIFYPEER, VERIFY_SSL);
+        $curl->setOpt(CURLOPT_SSL_VERIFYHOST, VERIFY_SSL ? 2 : 0);
         $curl->setOpt(CURLOPT_DNS_SERVERS, implode(',', $this->dnsServers));
         $curl->setOpt(CURLOPT_ENCODING, '');
         
@@ -177,6 +255,11 @@ class URLAnalyzerFetch extends URLAnalyzerBase
 
         if (isset($domainRules['headers'])) {
             $curl->setHeaders($domainRules['headers']);
+        }
+
+        $cookieHeader = $this->buildCookieHeaderFromRules($domainRules);
+        if ($cookieHeader !== null) {
+            $curl->setHeader('Cookie', $cookieHeader);
         }
 
         $curl->get($url);
@@ -220,7 +303,8 @@ class URLAnalyzerFetch extends URLAnalyzerBase
         $curl = new Curl();
         $curl->setOpt(CURLOPT_FOLLOWLOCATION, true);
         $curl->setOpt(CURLOPT_TIMEOUT, 10);
-        $curl->setOpt(CURLOPT_SSL_VERIFYPEER, false);
+        $curl->setOpt(CURLOPT_SSL_VERIFYPEER, VERIFY_SSL);
+        $curl->setOpt(CURLOPT_SSL_VERIFYHOST, VERIFY_SSL ? 2 : 0);
         $curl->setUserAgent($this->getRandomUserAgent());
         
         if (isset($domainRules['proxy']) && $domainRules['proxy'] === true) {
@@ -251,7 +335,8 @@ class URLAnalyzerFetch extends URLAnalyzerBase
         $curl = new Curl();
         $curl->setOpt(CURLOPT_FOLLOWLOCATION, true);
         $curl->setOpt(CURLOPT_TIMEOUT, 10);
-        $curl->setOpt(CURLOPT_SSL_VERIFYPEER, false);
+        $curl->setOpt(CURLOPT_SSL_VERIFYPEER, VERIFY_SSL);
+        $curl->setOpt(CURLOPT_SSL_VERIFYHOST, VERIFY_SSL ? 2 : 0);
         $curl->setUserAgent($this->getRandomUserAgent());
         
         if (isset($domainRules['proxy']) && $domainRules['proxy'] === true) {
